@@ -1,0 +1,63 @@
+name: Automation Release Reset
+
+on:
+  workflow_dispatch:
+
+jobs:
+  automation-release-reset:
+    runs-on: ubuntu-latest
+    concurrency: automation-release
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16' #
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Install jq
+        run: sudo apt-get install jq
+
+      - name: Set release version
+        run: |
+          echo "RELEASE_VERSION=${{ github.ref_name }}" | cut -d'/' -f2
+          echo $RELEASE_VERSION
+        shell: bash
+
+      - name: Get latest version
+        run: |
+          LATEST_VERSION=$(curl -fSs "https://fsm.staging.resolver.com/api/version/$RELEASE_VERSION" | jq -r '.[0].version')
+          echo "LATEST_VERSION=$LATEST_VERSION" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Set environment
+        run: |
+          ENVIRONMENT="automation-$(echo "$RELEASE_VERSION" | cut -d'.' -f1,2,3 | tr -d '.')"
+          SAFE_ENVIRONMENT=$(echo "$ENVIRONMENT" | jq -rR 'gsub("\\/"; "-") | gsub("\\."; "")')
+          echo "SAFE_ENVIRONMENT=$SAFE_ENVIRONMENT" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Check feature server existence
+        run: |
+          if curl -fSs "$FSM_URL/api/feature-server/$SAFE_ENVIRONMENT" > /dev/null; then
+            echo "Feature server $SAFE_ENVIRONMENT already exists, resetting it"
+            DEPLOY_ACTION="reset"
+          else
+            echo "Feature server $SAFE_ENVIRONMENT does not exist, creating it"
+            DEPLOY_ACTION="live"
+          fi
+          echo "DEPLOY_ACTION=$DEPLOY_ACTION" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Deploy action
+        run: |
+          DEPLOY_ID=$(curl -fSs --header "Content-Type: application/json" --request POST \
+          --data "$(jq -f .gitlab/deploy-payload.jq -nc --arg environment "$SAFE_ENVIRONMENT" --arg action $DEPLOY_ACTION --arg version "$LATEST_VERSION")" \
+          $FSM_URL/api/feature-server | jq -r '.id')
+          echo "DEPLOY_ID=$DEPLOY_ID" >> $GITHUB_ENV
+          echo $DEPLOY_ID
+        shell: bash
+
+      - name: Feature logs
+        run: yarn feature:logs --deployId=$DEPLOY_ID
