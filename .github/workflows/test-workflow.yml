@@ -21,7 +21,7 @@ jobs:
 
       - name: Set release version
         run: |
-          RELEASE_VERSION=$(echo '{"version": "123123"}' | jq -r '.version' | cut -d'.' -f1-3)
+          RELEASE_VERSION=$(curl -fSs https://pokeapi.co/api/v2/pokemon/ditto | jq -r '.height' | cut -d'.' -f1-3)
           echo $RELEASE_VERSION
         shell: bash
 
