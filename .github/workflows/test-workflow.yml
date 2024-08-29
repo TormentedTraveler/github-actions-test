@@ -27,8 +27,10 @@ jobs:
 
       - name: Get latest version
         run: |
-          LATEST_VERSION=$(curl -fSs "https://fsm.staging.resolver.com/api/version/$RELEASE_VERSION" | jq -r '.[0].version')
-          echo "LATEST_VERSION=$LATEST_VERSION" >> $GITHUB_ENV
+          export GITHUB_JOB_STATUS="success"
+          trap 'export GITHUB_JOB_STATUS="failed"' ERR
+          exit 1
+          echo $GITHUB_JOB_STATUS
         shell: bash
 
       - name: Set environment
