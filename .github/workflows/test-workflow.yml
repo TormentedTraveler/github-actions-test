@@ -39,7 +39,7 @@ jobs:
         run: |
           if [ "${{ steps.test.outcome }}" == "failure" ]; then
             echo "Previous step failed but we continued."
-            echo {{ job.status }}
+            echo ${{ job.status }}
           else
             echo "Previous step succeeded."
           fi
