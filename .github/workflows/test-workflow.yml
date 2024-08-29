@@ -42,7 +42,16 @@ jobs:
           if [ "${{ steps.test.outcome }}" == "failure" ]; then
             echo "Previous step failed but we continued."
             echo ${{ job.status }}
+
+            NEW="asdfasdfasdf"
+            echo "NEW=${{ $NEW }}" >> $GITHUB_ENV
           else
             echo "Previous step succeeded."
           fi
         shell: bash
+
+      - name: TEST git
+        run: |
+          echo $NEW
+        shell: bash
+        
