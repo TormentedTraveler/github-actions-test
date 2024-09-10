@@ -43,7 +43,7 @@ jobs:
             echo "Previous step failed but we continued."
             echo ${{ job.status }}
 
-            NEW="asdfasdfasdf"
+            export NEW="asdfasdfasdf"
             echo "NEW=${{ $NEW }}" >> $GITHUB_ENV
           else
             echo "Previous step succeeded."
