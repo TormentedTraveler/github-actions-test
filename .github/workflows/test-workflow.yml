@@ -30,10 +30,10 @@ jobs:
         uses: nick-fields/retry@v2
         env: 
           Halvi: 12123
+        continue-on-error: true
         with: 
           timeout_minutes: 10
           max_attempts: 3
-          continue-on-error: true
           command: |
             set -e
             set -x 
