@@ -28,16 +28,20 @@ jobs:
       - name: Get latest version
         id: test
         uses: nick-fields/retry@v2
+        env: 
+          Halvi: 12123
         with: 
           timeout_minutes: 10
           max_attempts: 3
+          continue-on-error: true
           command: |
             set -e
             set -x 
             export GITHUB_JOB_STATUS="success"
+            echo $Halvi
             exit 1
             echo ${{ job.status }}
-        continue-on-error: true
+        
 
       - name: Set environment
         run: |
